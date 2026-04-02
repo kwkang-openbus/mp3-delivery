@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 - MP3 배달 서비스</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --primary: 221.2 83.2% 53.3%;
+      --primary-foreground: 210 40% 98%;
+      --destructive: 0 84.2% 60.2%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 221.2 83.2% 53.3%;
+      --radius: 0.75rem;
+      --font: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+    }
+    body {
+      font-family: var(--font); background: hsl(var(--muted));
+      color: hsl(var(--foreground)); -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+    /* == LOGIN == */
+    #loginView {
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      background: hsl(var(--foreground)); padding: 20px;
+    }
+    .login-card {
+      background: hsl(var(--card)); border-radius: calc(var(--radius)*2);
+      padding: 32px 28px; width: 100%; max-width: 380px;
+      border: 1px solid hsl(var(--border));
+      box-shadow: 0 8px 32px hsla(222,84%,5%,0.2);
+    }
+    .login-card h2 {
+      font-size: 18px; font-weight: 700; text-align: center;
+      margin-bottom: 6px; letter-spacing: -0.02em;
+    }
+    .login-subtitle {
+      font-size: 13px; color: hsl(var(--muted-foreground));
+      text-align: center; margin-bottom: 24px;
+    }
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 13px; font-weight: 500;
+      margin-bottom: 5px; color: hsl(var(--foreground));
+    }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 9px 13px;
+      border: 1px solid hsl(var(--input)); border-radius: var(--radius);
+      font-size: 14px; font-family: var(--font); outline: none;
+      color: hsl(var(--foreground)); background: hsl(var(--card));
+      transition: all 0.15s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 3px hsla(221,83%,53%,0.1);
+    }
+    .field textarea { resize: vertical; min-height: 70px; }
+    .btn {
+      padding: 9px 18px; border-radius: var(--radius);
+      font-size: 13px; font-weight: 600; font-family: var(--font);
+      cursor: pointer; transition: all 0.15s; border: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary {
+      background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+      width: 100%;  justify-content: center;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-outline {
+      background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+      color: hsl(var(--foreground));
+    }
+    .btn-outline:hover { background: hsl(var(--accent)); }
+    .btn-ghost { background: transparent; color: hsl(var(--muted-foreground)); border: none; }
+    .btn-ghost:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+    .btn-destructive {
+      background: hsl(0 84% 96%); border: 1px solid hsl(0 72% 88%);
+      color: hsl(var(--destructive));
+    }
+    .btn-destructive:hover { background: hsl(0 84% 92%); }
+    #loginError { color: hsl(var(--destructive)); font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
+
+    /* == APP == */
+    #appView { display: none; }
+
+    /* Topbar */
+    .topbar {
+      background: hsl(var(--card));
+      border-bottom: 1px solid hsl(var(--border));
+      height: 52px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 20px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 8px; }
+    .topbar-logo {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: hsl(var(--foreground)); color: hsl(var(--primary-foreground));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .topbar-title { font-size: 14px; font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    /* Tabs */
+    .tabs {
+      background: hsl(var(--card));
+      border-bottom: 1px solid hsl(var(--border));
+      display: flex; padding: 0 20px; gap: 0;
+    }
+    .tab {
+      padding: 10px 16px; background: none; border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      font-family: var(--font); color: hsl(var(--muted-foreground));
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+    .tab:hover { color: hsl(var(--foreground)); }
+    .tab.active { color: hsl(var(--foreground)); border-bottom-color: hsl(var(--primary)); }
+    .tab svg { width: 14px; height: 14px; }
+
+    /* Main */
+    .main { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+      border-radius: var(--radius); padding: 16px 18px;
+    }
+    .stat-label { font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 500; margin-bottom: 4px; }
+    .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; color: hsl(var(--foreground)); }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Section */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 15px; font-weight: 600; }
+
+    /* Table */
+    .table-card {
+      background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+      border-radius: var(--radius); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { border-bottom: 1px solid hsl(var(--border)); }
+    th {
+      padding: 10px 14px; text-align: left;
+      font-size: 11px; font-weight: 600;
+      color: hsl(var(--muted-foreground));
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    td {
+      padding: 10px 14px; font-size: 13px;
+      border-bottom: 1px solid hsl(var(--border));
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: hsla(210,40%,96%,0.5); }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 9999px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .badge-jp { background: hsl(350 100% 96%); color: hsl(350 80% 45%); }
+    .badge-cn { background: hsl(25 100% 96%); color: hsl(25 90% 40%); }
+    .badge-ok { background: hsl(152 76% 95%); color: hsl(152 60% 30%); }
+    .badge-fail { background: hsl(0 84% 96%); color: hsl(0 72% 45%); }
+    .mp3-info { font-size: 11px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; }
+    .mp3-dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(152 60% 50%); }
+    .no-data {
+      text-align: center; padding: 40px; color: hsl(var(--muted-foreground));
+      font-size: 13px;
+    }
+
+    /* Modal */
+    .modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: hsla(222,84%,5%,0.5); z-index: 200;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: hsl(var(--card)); border-radius: calc(var(--radius)*2);
+      padding: 24px; width: 100%; max-width: 460px;
+      max-height: 90vh; overflow-y: auto;
+      border: 1px solid hsl(var(--border));
+      box-shadow: 0 16px 48px hsla(222,84%,5%,0.15);
+    }
+    .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.01em; }
+    .file-drop {
+      border: 2px dashed hsl(var(--border)); border-radius: var(--radius);
+      padding: 20px; text-align: center; cursor: pointer; transition: all 0.15s;
+    }
+    .file-drop:hover { border-color: hsl(var(--primary)); background: hsla(221,83%,53%,0.02); }
+    .file-drop input { display: none; }
+    .file-drop p { font-size: 12px; color: hsl(var(--muted-foreground)); }
+    .file-drop .label { font-size: 13px; font-weight: 500; color: hsl(var(--primary)); }
+    .file-name { font-size: 12px; color: hsl(152 60% 30%); margin-top: 6px; font-weight: 500; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .modal-footer .btn-primary { width: auto; }
+    .alert {
+      padding: 10px 14px; border-radius: var(--radius);
+      font-size: 12px; font-weight: 500; margin-top: 12px;
+    }
+    .alert-ok { background: hsl(152 76% 95%); color: hsl(152 60% 30%); border: 1px solid hsl(152 60% 85%); }
+    .alert-err { background: hsl(0 84% 96%); color: hsl(0 72% 45%); border: 1px solid hsl(0 72% 88%); }
+
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .main { padding: 16px; }
+      th, td { padding: 8px 10px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginView">
+  <div class="login-card">
+    <h2>관리자 로그인</h2>
+    <p class="login-subtitle">MP3 배달 서비스 관리 콘솔</p>
+    <div class="field">
+      <label>아이디</label>
+      <input type="text" id="loginUser" value="admin">
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <input type="password" id="loginPass" placeholder="비밀번호">
+    </div>
+    <button class="btn btn-primary" style="margin-top:4px" onclick="doLogin()">로그인</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="appView">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">M</div>
+      <span class="topbar-title">MP3 관리자</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/" class="btn btn-sm btn-ghost">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+        사용자 페이지
+      </a>
+      <button class="btn btn-sm btn-outline" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      대시보드
+    </button>
+    <button class="tab" onclick="switchTab('textbooks',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 010-5H20"/></svg>
+      교재 관리
+    </button>
+    <button class="tab" onclick="switchTab('history',this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+      발송 이력
+    </button>
+  </div>
+
+  <div class="main">
+    <!-- Dashboard -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">전체 교재</div><div class="stat-value" id="s-total">-</div></div>
+        <div class="stat-card"><div class="stat-label">오늘 발송</div><div class="stat-value" id="s-today">-</div></div>
+        <div class="stat-card"><div class="stat-label">누적 발송</div><div class="stat-value" id="s-sends">-</div></div>
+      </div>
+      <div class="section-header"><span class="section-title">최근 발송</span></div>
+      <div class="table-card">
+        <table><thead><tr><th>교재</th><th>수신 이메일</th><th>시간</th><th>상태</th></tr></thead>
+        <tbody id="recentTbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Textbooks -->
+    <div id="panel-textbooks" class="panel">
+      <div class="section-header">
+        <span class="section-title">교재 목록</span>
+        <button class="btn btn-sm btn-primary" onclick="openModal()">+ 교재 추가</button>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>언어</th><th>교재명</th><th>레벨</th><th>출판사</th><th>MP3</th><th>관리</th></tr></thead>
+        <tbody id="booksTbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div id="panel-history" class="panel">
+      <div class="section-header"><span class="section-title">전체 발송 이력</span></div>
+      <div class="table-card">
+        <table><thead><tr><th>교재</th><th>수신 이메일</th><th>시간</th><th>상태</th><th>오류</th></tr></thead>
+        <tbody id="histTbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">교재 추가</h3>
+    <input type="hidden" id="editId">
+    <div class="field"><label>언어</label><select id="fLang"><option value="japanese">일본어</option><option value="chinese">중국어</option></select></div>
+    <div class="field"><label>교재명</label><input type="text" id="fTitle" placeholder="JLPT N5 완전정복"></div>
+    <div class="field"><label>레벨</label><input type="text" id="fLevel" placeholder="N5, HSK1, 초급"></div>
+    <div class="field"><label>출판사</label><input type="text" id="fPub" placeholder="다락원"></div>
+    <div class="field"><label>설명</label><textarea id="fDesc" placeholder="교재 소개 (선택)"></textarea></div>
+    <div class="field">
+      <label>MP3 파일</label>
+      <div class="file-drop" onclick="document.getElementById('fMp3').click()">
+        <p class="label">파일 선택</p>
+        <p>MP3 파일을 업로드하세요 (최대 100MB)</p>
+        <div class="file-name" id="fileName"></div>
+        <input type="file" id="fMp3" accept=".mp3,audio/mpeg" onchange="handleFile(this)">
+      </div>
+    </div>
+    <div id="modalAlert"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-sm btn-primary" id="saveBtn" onclick="saveBook()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // Auth
+  async function checkAuth() {
+    const r = await fetch('/api/admin/me');
+    if ((await r.json()).isAdmin) showApp();
+  }
+  async function doLogin() {
+    $('loginError').textContent = '';
+    const r = await fetch('/api/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username: $('loginUser').value, password: $('loginPass').value })
+    });
+    if (r.ok) showApp(); else $('loginError').textContent = (await r.json()).error;
+  }
+  $('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+  async function doLogout() {
+    await fetch('/api/admin/logout',{method:'POST'});
+    $('appView').style.display='none'; $('loginView').style.display='flex';
+  }
+  function showApp() {
+    $('loginView').style.display='none'; $('appView').style.display='block';
+    loadStats(); loadRecent();
+  }
+  checkAuth();
+
+  // Tabs
+  function switchTab(t, btn) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active'); $('panel-'+t).classList.add('active');
+    if (t==='textbooks') loadBooks();
+    if (t==='history') loadHist();
+    if (t==='dashboard') { loadStats(); loadRecent(); }
+  }
+
+  // Stats
+  async function loadStats() {
+    const d = await (await fetch('/api/admin/stats')).json();
+    $('s-total').textContent = d.totalBooks;
+    $('s-today').textContent = d.todaySends;
+    $('s-sends').textContent = d.totalSends;
+  }
+
+  // Recent
+  async function loadRecent() {
+    const data = await (await fetch('/api/admin/history?limit=10')).json();
+    $('recentTbody').innerHTML = data.length ? data.map(h => `<tr>
+      <td>${h.textbook_title||'-'}</td><td style="font-size:12px">${h.email}</td>
+      <td style="font-size:12px">${fmtDate(h.sent_at)}</td>
+      <td><span class="badge ${h.status==='success'?'badge-ok':'badge-fail'}">${h.status==='success'?'성공':'실패'}</span></td>
+    </tr>`).join('') : '<tr><td colspan="4" class="no-data">발송 이력이 없습니다</td></tr>';
+  }
+
+  // Books
+  async function loadBooks() {
+    const data = await (await fetch('/api/admin/textbooks')).json();
+    $('booksTbody').innerHTML = data.length ? data.map(b => `<tr>
+      <td><span class="badge ${b.language==='japanese'?'badge-jp':'badge-cn'}">${b.language==='japanese'?'일본어':'중국어'}</span></td>
+      <td style="font-weight:500">${b.title}</td>
+      <td style="font-size:12px;color:hsl(var(--muted-foreground))">${b.level||'-'}</td>
+      <td style="font-size:12px">${b.publisher||'-'}</td>
+      <td>${b.mp3_filename?`<span class="mp3-info"><span class="mp3-dot"></span>${fmtSize(b.mp3_size)}</span>`:'<span style="font-size:11px;color:hsl(var(--muted-foreground))">없음</span>'}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick='openModal(${JSON.stringify(b)})'>수정</button>
+        <button class="btn btn-sm btn-destructive" onclick="delBook(${b.id},'${b.title.replace(/'/g,"\\'")}')">삭제</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="6" class="no-data">등록된 교재가 없습니다</td></tr>';
+  }
+
+  // History
+  async function loadHist() {
+    const data = await (await fetch('/api/admin/history?limit=200')).json();
+    $('histTbody').innerHTML = data.length ? data.map(h => `<tr>
+      <td>${h.textbook_title||'-'}</td><td style="font-size:12px">${h.email}</td>
+      <td style="font-size:12px">${fmtDate(h.sent_at)}</td>
+      <td><span class="badge ${h.status==='success'?'badge-ok':'badge-fail'}">${h.status==='success'?'성공':'실패'}</span></td>
+      <td style="font-size:11px;color:hsl(var(--destructive))">${h.error_msg||''}</td>
+    </tr>`).join('') : '<tr><td colspan="5" class="no-data">발송 이력이 없습니다</td></tr>';
+  }
+
+  // Modal
+  function openModal(b=null) {
+    $('modalTitle').textContent = b ? '교재 수정' : '교재 추가';
+    $('editId').value = b?.id||'';
+    $('fLang').value = b?.language||'japanese';
+    $('fTitle').value = b?.title||'';
+    $('fLevel').value = b?.level||'';
+    $('fPub').value = b?.publisher||'';
+    $('fDesc').value = b?.description||'';
+    $('fMp3').value = '';
+    $('fileName').textContent = b?.mp3_filename ? `현재: ${b.mp3_filename}` : '';
+    $('modalAlert').innerHTML = '';
+    $('modalBg').classList.add('open');
+  }
+  function closeModal() { $('modalBg').classList.remove('open'); }
+  function handleFile(inp) {
+    const f = inp.files[0];
+    $('fileName').textContent = f ? `${f.name} (${fmtSize(f.size)})` : '';
+  }
+
+  async function saveBook() {
+    const id = $('editId').value;
+    const btn = $('saveBtn');
+    btn.disabled = true; btn.textContent = '저장 중...';
+
+    const fd = new FormData();
+    fd.append('language', $('fLang').value);
+    fd.append('title', $('fTitle').value.trim());
+    fd.append('level', $('fLevel').value.trim());
+    fd.append('publisher', $('fPub').value.trim());
+    fd.append('description', $('fDesc').value.trim());
+    const mp3 = $('fMp3').files[0];
+    if (mp3) fd.append('mp3', mp3);
+
+    try {
+      const url = id ? `/api/admin/textbooks/${id}` : '/api/admin/textbooks';
+      const r = await fetch(url, { method: id?'PUT':'POST', body: fd });
+      const d = await r.json();
+      if (r.ok) {
+        showAlert('ok', '저장되었습니다');
+        setTimeout(() => { closeModal(); loadBooks(); loadStats(); }, 600);
+      } else showAlert('err', d.error);
+    } catch { showAlert('err', '서버 오류'); }
+    finally { btn.disabled = false; btn.textContent = '저장'; }
+  }
+
+  async function delBook(id, title) {
+    if (!confirm(`"${title}" 교재를 삭제할까요?`)) return;
+    const r = await fetch(`/api/admin/textbooks/${id}`,{method:'DELETE'});
+    if (r.ok) { loadBooks(); loadStats(); }
+  }
+
+  function showAlert(t, msg) {
+    $('modalAlert').innerHTML = `<div class="alert alert-${t}">${msg}</div>`;
+  }
+
+  // Utils
+  function fmtDate(s) {
+    if (!s) return '-';
+    return new Date(s).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+  function fmtSize(b) {
+    if (!b) return '0B';
+    if (b<1024) return b+'B';
+    if (b<1048576) return (b/1024).toFixed(1)+'KB';
+    return (b/1048576).toFixed(1)+'MB';
+  }
+
+  $('modalBg').addEventListener('click', e => { if (e.target===$('modalBg')) closeModal(); });
+</script>
+</body>
+</html>

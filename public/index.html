@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MP3 배달 서비스</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* === v0.dev / shadcn-ui design tokens === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --primary: 221.2 83.2% 53.3%;
+      --primary-foreground: 210 40% 98%;
+      --destructive: 0 84.2% 60.2%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 221.2 83.2% 53.3%;
+      --radius: 0.75rem;
+      --font: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      font-family: var(--font);
+      background: hsl(var(--muted));
+      color: hsl(var(--foreground));
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+    /* === utilities === */
+    .container { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+
+    /* === hero === */
+    .hero {
+      background: hsl(var(--foreground));
+      color: hsl(var(--primary-foreground));
+      padding: 48px 16px 72px;
+      text-align: center;
+    }
+    .hero-inner { max-width: 480px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: hsla(0,0%,100%,0.1);
+      border: 1px solid hsla(0,0%,100%,0.15);
+      padding: 5px 14px; border-radius: 9999px;
+      font-size: 12px; font-weight: 500;
+      margin-bottom: 20px; letter-spacing: 0.02em;
+    }
+    .hero-badge svg { opacity: 0.7; }
+    .hero h1 {
+      font-size: 32px; font-weight: 700;
+      letter-spacing: -0.025em; line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 14px; opacity: 0.6; line-height: 1.6; font-weight: 400;
+    }
+
+    /* === steps === */
+    .steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-top: 24px;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+    .step-item.active { opacity: 1; }
+    .step-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 1.5px solid hsla(0,0%,100%,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+    .step-item.active .step-dot {
+      background: hsl(var(--primary));
+      border-color: hsl(var(--primary));
+    }
+    .step-separator {
+      width: 32px; height: 1px;
+      background: hsla(0,0%,100%,0.15);
+      margin: 0 8px;
+    }
+
+    /* === search card === */
+    .search-wrap {
+      margin-top: -40px;
+      position: relative; z-index: 10;
+    }
+    .search-card {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: calc(var(--radius) * 2);
+      padding: 20px;
+      box-shadow: 0 4px 24px hsla(222,84%,5%,0.06), 0 1px 4px hsla(222,84%,5%,0.04);
+    }
+    .search-input-wrap {
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid hsl(var(--input));
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      transition: all 0.15s;
+      background: hsl(var(--muted));
+    }
+    .search-input-wrap:focus-within {
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 3px hsla(221,83%,53%,0.1);
+      background: hsl(var(--card));
+    }
+    .search-input-wrap svg { color: hsl(var(--muted-foreground)); flex-shrink: 0; }
+    .search-input-wrap:focus-within svg { color: hsl(var(--primary)); }
+    #searchInput {
+      flex: 1; border: none; background: transparent; font-size: 14px;
+      font-family: var(--font); color: hsl(var(--foreground));
+      outline: none;
+    }
+    #searchInput::placeholder { color: hsl(var(--muted-foreground)); }
+    .search-clear {
+      display: none; background: hsl(var(--accent)); border: none;
+      width: 20px; height: 20px; border-radius: 50%;
+      cursor: pointer; color: hsl(var(--muted-foreground));
+      font-size: 11px; align-items: center; justify-content: center;
+    }
+    .search-clear.visible { display: flex; }
+    .search-clear:hover { background: hsl(var(--border)); }
+    .filter-row {
+      display: flex; align-items: center; gap: 6px; margin-top: 12px;
+    }
+    .filter-label {
+      font-size: 12px; color: hsl(var(--muted-foreground));
+      font-weight: 500; margin-right: 2px;
+    }
+    .filter-chip {
+      padding: 5px 14px; border-radius: 9999px;
+      border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+      cursor: pointer; font-size: 12px; font-weight: 500;
+      font-family: var(--font); color: hsl(var(--muted-foreground));
+      transition: all 0.15s;
+    }
+    .filter-chip:hover {
+      border-color: hsl(var(--primary));
+      color: hsl(var(--primary));
+    }
+    .filter-chip.active {
+      background: hsl(var(--foreground));
+      border-color: hsl(var(--foreground));
+      color: hsl(var(--primary-foreground));
+    }
+
+    /* === results === */
+    .results-area { margin-top: 20px; padding-bottom: 140px; }
+    .results-count {
+      font-size: 12px; font-weight: 500;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 10px; display: block;
+    }
+    .book-list { display: flex; flex-direction: column; gap: 8px; }
+
+    /* === textbook card (shadcn Card style) === */
+    .book-card {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 14px;
+      transition: all 0.15s;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .book-card:hover {
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 1px hsl(var(--ring));
+    }
+    .book-card.selected {
+      border-color: hsl(var(--primary));
+      box-shadow: 0 0 0 2px hsla(221,83%,53%,0.15);
+      background: hsla(221,83%,53%,0.04);
+    }
+    .book-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 16px; flex-shrink: 0;
+    }
+    .book-icon.jp {
+      background: hsl(350 100% 97%);
+      color: hsl(350 80% 50%);
+      border: 1px solid hsl(350 80% 92%);
+    }
+    .book-icon.cn {
+      background: hsl(25 100% 97%);
+      color: hsl(25 90% 45%);
+      border: 1px solid hsl(25 80% 90%);
+    }
+    .book-body { flex: 1; min-width: 0; }
+    .book-tags { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .tag {
+      font-size: 10px; font-weight: 600; padding: 1px 7px;
+      border-radius: 4px; letter-spacing: 0.03em;
+    }
+    .tag-jp { background: hsl(350 100% 96%); color: hsl(350 80% 45%); }
+    .tag-cn { background: hsl(25 100% 96%); color: hsl(25 90% 40%); }
+    .tag-level {
+      font-size: 10px; color: hsl(var(--muted-foreground)); font-weight: 500;
+    }
+    .book-title {
+      font-size: 14px; font-weight: 600; color: hsl(var(--foreground));
+      line-height: 1.3; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-desc {
+      font-size: 12px; color: hsl(var(--muted-foreground));
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .book-end { flex-shrink: 0; text-align: right; }
+    .book-publisher { font-size: 11px; color: hsl(var(--muted-foreground)); }
+    .book-action {
+      font-size: 11px; font-weight: 600;
+      color: hsl(var(--muted-foreground));
+      margin-top: 4px; transition: color 0.15s;
+    }
+    .book-card:hover .book-action { color: hsl(var(--primary)); }
+    .book-card.selected .book-action { color: hsl(var(--primary)); }
+
+    /* === empty / loading === */
+    .empty-state {
+      text-align: center; padding: 48px 16px;
+      color: hsl(var(--muted-foreground));
+    }
+    .empty-state svg { margin: 0 auto 12px; opacity: 0.4; }
+    .empty-state h3 { font-size: 14px; font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 4px; }
+    .empty-state p { font-size: 13px; }
+    .loading { text-align: center; padding: 48px; color: hsl(var(--muted-foreground)); font-size: 13px; }
+    .spinner {
+      display: inline-block; width: 24px; height: 24px;
+      border: 2.5px solid hsl(var(--border));
+      border-top-color: hsl(var(--primary));
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === email panel (sticky bottom sheet) === */
+    #emailPanel {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    #emailPanel.open { transform: translateY(0); }
+    .panel-bg {
+      background: hsl(var(--card));
+      border-top: 1px solid hsl(var(--border));
+      box-shadow: 0 -4px 24px hsla(222,84%,5%,0.08);
+    }
+    .panel-inner {
+      max-width: 640px; margin: 0 auto;
+      padding: 16px 16px 20px;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .panel-book {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; color: hsl(var(--foreground));
+    }
+    .panel-book-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .panel-close {
+      background: transparent; border: 1px solid hsl(var(--border));
+      width: 28px; height: 28px; border-radius: 6px;
+      cursor: pointer; color: hsl(var(--muted-foreground));
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .panel-close:hover { background: hsl(var(--accent)); }
+    .email-row { display: flex; gap: 8px; }
+    #emailInput {
+      flex: 1; padding: 10px 14px;
+      border: 1px solid hsl(var(--input));
+      border-radius: var(--radius);
+      font-size: 14px; font-family: var(--font);
+      outline: none; background: hsl(var(--card));
+      color: hsl(var(--foreground)); transition: all 0.15s;
+    }
+    #emailInput::placeholder { color: hsl(var(--muted-foreground)); }
+    #emailInput:focus {
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 3px hsla(221,83%,53%,0.1);
+    }
+    .btn-primary {
+      padding: 10px 20px;
+      background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+      border: none; border-radius: var(--radius);
+      font-size: 13px; font-weight: 600; font-family: var(--font);
+      cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+    #toast {
+      display: none; align-items: center; gap: 6px;
+      padding: 10px 14px; border-radius: var(--radius);
+      margin-top: 8px; font-size: 12px; font-weight: 500;
+    }
+    #toast.success { display: flex; background: hsl(152 76% 95%); color: hsl(152 60% 30%); border: 1px solid hsl(152 60% 85%); }
+    #toast.error { display: flex; background: hsl(0 84% 96%); color: hsl(0 72% 45%); border: 1px solid hsl(0 72% 88%); }
+
+    /* === footer === */
+    footer {
+      text-align: center; padding: 16px; font-size: 11px;
+      color: hsl(var(--muted-foreground));
+    }
+    footer a {
+      color: hsl(var(--muted-foreground)); text-decoration: none;
+      border-bottom: 1px dashed hsl(var(--border));
+    }
+    footer a:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)); }
+
+    /* === responsive === */
+    @media (max-width: 480px) {
+      .hero { padding: 40px 16px 64px; }
+      .hero h1 { font-size: 26px; }
+      .step-separator { width: 16px; }
+      .book-desc { display: none; }
+      .book-end { display: none; }
+      .book-card { padding: 12px 14px; gap: 12px; }
+      .book-icon { width: 38px; height: 38px; font-size: 14px; }
+      .email-row { flex-direction: column; }
+      .btn-primary { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      MP3 자동 배달 서비스
+    </div>
+    <h1>교재 음원을 이메일로<br>바로 받아보세요</h1>
+    <p>일본어 · 중국어 교재의 MP3 파일을 검색하고<br>이메일로 즉시 전송받을 수 있습니다</p>
+
+    <div class="steps" id="stepsIndicator">
+      <div class="step-item active" data-step="1"><span class="step-dot">1</span> 검색</div>
+      <div class="step-separator"></div>
+      <div class="step-item" data-step="2"><span class="step-dot">2</span> 선택</div>
+      <div class="step-separator"></div>
+      <div class="step-item" data-step="3"><span class="step-dot">3</span> 전송</div>
+    </div>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="container search-wrap">
+  <div class="search-card">
+    <div class="search-input-wrap">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="교재명 또는 출판사를 입력하세요" autocomplete="off">
+      <button class="search-clear" id="searchClear">&times;</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">언어</span>
+      <button class="filter-chip active" data-lang="all">전체</button>
+      <button class="filter-chip" data-lang="japanese">일본어</button>
+      <button class="filter-chip" data-lang="chinese">중국어</button>
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="container results-area">
+  <span class="results-count" id="resultsCount"></span>
+  <div id="bookList" class="book-list">
+    <div class="loading"><div class="spinner"></div><div>불러오는 중</div></div>
+  </div>
+</div>
+
+<!-- Email Panel -->
+<div id="emailPanel">
+  <div class="panel-bg">
+    <div class="panel-inner">
+      <div class="panel-header">
+        <div class="panel-book">
+          <div class="panel-book-icon" id="panelIcon" style="background:hsl(var(--muted))"></div>
+          <span id="panelTitle">교재 선택</span>
+        </div>
+        <button class="panel-close" id="panelClose">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="email-row">
+        <input type="email" id="emailInput" placeholder="이메일 주소를 입력하세요">
+        <button class="btn-primary" id="sendBtn">
+          <span id="sendBtnText">전송하기</span>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+        </button>
+      </div>
+      <div id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<footer><a href="/admin">관리자</a></footer>
+
+<script>
+  let selectedTextbook = null;
+  let currentLang = 'all';
+  let debounceTimer;
+  let allBooks = [];
+
+  const $ = id => document.getElementById(id);
+  const searchInput = $('searchInput');
+  const searchClear = $('searchClear');
+  const emailInput = $('emailInput');
+  const sendBtn = $('sendBtn');
+  const emailPanel = $('emailPanel');
+  const bookList = $('bookList');
+  const resultsCount = $('resultsCount');
+  const toast = $('toast');
+
+  // Init
+  fetchBooks('', 'all');
+  fetch('/api/textbooks').then(r => r.json()).then(d => allBooks = d);
+
+  // Search
+  searchInput.addEventListener('input', () => {
+    searchClear.classList.toggle('visible', searchInput.value.length > 0);
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fetchBooks(searchInput.value.trim(), currentLang), 200);
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = ''; searchClear.classList.remove('visible');
+    fetchBooks('', currentLang); searchInput.focus();
+  });
+
+  // Filter
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentLang = chip.dataset.lang;
+      fetchBooks(searchInput.value.trim(), currentLang);
+    });
+  });
+
+  // Steps
+  function setStep(n) {
+    document.querySelectorAll('.step-item').forEach(s => {
+      s.classList.toggle('active', parseInt(s.dataset.step) <= n);
+    });
+  }
+
+  // Fetch
+  async function fetchBooks(q, lang) {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (lang !== 'all') params.set('language', lang);
+    try {
+      const res = await fetch('/api/textbooks?' + params);
+      renderBooks(await res.json(), q);
+    } catch {
+      bookList.innerHTML = '<div class="empty-state"><h3>연결 오류</h3><p>서버에 연결할 수 없습니다</p></div>';
+    }
+  }
+
+  function renderBooks(books, q) {
+    if (!books.length) {
+      resultsCount.textContent = '';
+      const msg = q?.length >= 2 ? `"${q}" 검색 결과 없음` : '교재가 없습니다';
+      bookList.innerHTML = `<div class="empty-state">
+        <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <h3>${msg}</h3><p>다른 키워드로 검색해보세요</p>
+      </div>`;
+      return;
+    }
+    resultsCount.textContent = `${books.length}개 교재`;
+    bookList.innerHTML = books.map((b, i) => {
+      const jp = b.language === 'japanese';
+      const sel = selectedTextbook?.id === b.id;
+      return `<div class="book-card${sel ? ' selected' : ''}" data-id="${b.id}"
+        style="animation-delay:${i * 30}ms" onclick="selectBook(${b.id})">
+        <div class="book-icon ${jp ? 'jp' : 'cn'}">${jp ? 'あ' : '汉'}</div>
+        <div class="book-body">
+          <div class="book-tags">
+            <span class="tag ${jp ? 'tag-jp' : 'tag-cn'}">${jp ? '일본어' : '중국어'}</span>
+            ${b.level ? `<span class="tag-level">${b.level}</span>` : ''}
+          </div>
+          <div class="book-title">${b.title}</div>
+          ${b.description ? `<div class="book-desc">${b.description}</div>` : ''}
+        </div>
+        <div class="book-end">
+          ${b.publisher ? `<div class="book-publisher">${b.publisher}</div>` : ''}
+          <div class="book-action">${sel ? '&#10003; 선택됨' : '선택 &rarr;'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Select
+  async function selectBook(id) {
+    const book = allBooks.find(b => b.id === id);
+    if (!book) return;
+    selectedTextbook = book;
+    const jp = book.language === 'japanese';
+
+    const icon = $('panelIcon');
+    icon.textContent = jp ? 'あ' : '汉';
+    icon.style.background = jp ? 'hsl(350 100% 97%)' : 'hsl(25 100% 97%)';
+    icon.style.color = jp ? 'hsl(350 80% 50%)' : 'hsl(25 90% 45%)';
+    $('panelTitle').textContent = book.title;
+
+    emailPanel.classList.add('open');
+    emailInput.value = ''; hideToast(); setStep(2);
+
+    document.querySelectorAll('.book-card').forEach(c => {
+      const s = parseInt(c.dataset.id) === id;
+      c.classList.toggle('selected', s);
+      const a = c.querySelector('.book-action');
+      if (a) a.innerHTML = s ? '&#10003; 선택됨' : '선택 &rarr;';
+    });
+    setTimeout(() => emailInput.focus(), 300);
+  }
+
+  // Close panel
+  $('panelClose').addEventListener('click', () => {
+    emailPanel.classList.remove('open');
+    selectedTextbook = null; setStep(1);
+    document.querySelectorAll('.book-card').forEach(c => {
+      c.classList.remove('selected');
+      const a = c.querySelector('.book-action');
+      if (a) a.innerHTML = '선택 &rarr;';
+    });
+  });
+
+  // Send
+  sendBtn.addEventListener('click', doSend);
+  emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSend(); });
+  emailInput.addEventListener('focus', () => { if (selectedTextbook) setStep(3); });
+
+  async function doSend() {
+    if (!selectedTextbook) return;
+    const email = emailInput.value.trim();
+    if (!email) { showToast('error', '이메일 주소를 입력해주세요.'); return; }
+
+    sendBtn.disabled = true; $('sendBtnText').textContent = '전송 중...'; hideToast();
+
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ textbookId: selectedTextbook.id, email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('success', `${email}로 MP3를 전송했습니다. 메일함을 확인하세요.`);
+        emailInput.value = '';
+      } else {
+        showToast('error', data.error || '전송에 실패했습니다.');
+      }
+    } catch {
+      showToast('error', '서버 연결에 실패했습니다.');
+    } finally {
+      sendBtn.disabled = false; $('sendBtnText').textContent = '전송하기';
+    }
+  }
+
+  function showToast(type, msg) { toast.className = type; toast.textContent = msg; }
+  function hideToast() { toast.className = ''; toast.textContent = ''; }
+</script>
+</body>
+</html>
